@@ -6,9 +6,11 @@ const port = 2498;
 const multiMonitorToolRoute = '"./tools/MultiMonitorTool.exe"';
 const nirCmdRoute = '"./tools/nircmd.exe"';
 const ID_TV = 2;
-const ID_MONITOR_PC = 3;
+const ID_MONITOR_PC = 1;
 
 let tvOn = false;
+let primaryDisplay = ID_MONITOR_PC;
+
 app.get("/shutdown", (req, res) => {
   exec("shutdown /s /t 0", (error) => {
     if (error) {
@@ -52,13 +54,14 @@ app.get("/toggle-tv", (req, res) => {
 });
 
 app.get("/alternate-primary", (req, res) => {
-  const target = tvOn ? ID_TV : ID_MONITOR_PC;
+  const target = primaryDisplay === ID_MONITOR_PC ? ID_TV : ID_MONITOR_PC;
   exec(`${multiMonitorToolRoute} /SetPrimary ${target}`, (err) => {
     if (err) {
       console.error("Error switching primary display:", err);
       return res.status(500).send("Error switching primary display.");
     }
-    res.send(`Primary display set to ${target}`);
+    primaryDisplay = target;
+    res.send(`Primary display set to ${target == 2 ? "TV" : "PC"}`);
   });
 });
 
