@@ -1,119 +1,119 @@
-const express = require("express");
-const { exec } = require("child_process");
-const app = express();
-const port = 2498;
+const express = require('express')
+const { exec } = require('child_process')
+const app = express()
+const port = 2498
 
-const multiMonitorToolRoute = '"./tools/MultiMonitorTool.exe"';
-const nirCmdRoute = '"./tools/nircmd.exe"';
-const ID_TV = 2;
-const ID_MONITOR_PC = 1;
+const multiMonitorToolRoute = '"./tools/MultiMonitorTool.exe"'
+const nirCmdRoute = '"./tools/nircmd.exe"'
+const ID_TV = 3
+const ID_MONITOR_PC = 1
 
-let tvOn = false;
-let primaryDisplay = ID_MONITOR_PC;
+let tvOn = false
+let primaryDisplay = ID_MONITOR_PC
 
-app.get("/shutdown", (req, res) => {
-  exec("shutdown /s /t 0", (error) => {
+app.get('/shutdown', (req, res) => {
+  exec('shutdown /s /t 0', (error) => {
     if (error) {
-      console.error("Error shutting down PC:", error);
-      return res.status(500).send("Could not shut down PC.");
+      console.error('Error shutting down PC:', error)
+      return res.status(500).send('Could not shut down PC.')
     }
-    res.send("PC shutting down...");
-  });
-});
+    res.send('PC shutting down...')
+  })
+})
 
-app.get("/lock", (req, res) => {
-  exec("rundll32.exe user32.dll,LockWorkStation", (error) => {
+app.get('/lock', (req, res) => {
+  exec('rundll32.exe user32.dll,LockWorkStation', (error) => {
     if (error) {
-      console.error("Error locking PC:", error);
-      return res.status(500).send("Could not lock PC.");
+      console.error('Error locking PC:', error)
+      return res.status(500).send('Could not lock PC.')
     }
-    res.send("PC locked. Enter your password to resume.");
-  });
-});
+    res.send('PC locked. Enter your password to resume.')
+  })
+})
 
-app.get("/toggle-tv", (req, res) => {
+app.get('/toggle-tv', (req, res) => {
   if (!tvOn) {
     exec(`${multiMonitorToolRoute} /enable ${ID_TV}`, (err) => {
       if (err) {
-        console.error("Error turning on TV:", err);
-        return res.status(500).send("Error turning on TV.");
+        console.error('Error turning on TV:', err)
+        return res.status(500).send('Error turning on TV.')
       }
-      tvOn = true;
-      res.send("TV turned on.");
-    });
+      tvOn = true
+      res.send('TV turned on.')
+    })
   } else {
     exec(`${multiMonitorToolRoute} /disable ${ID_TV}`, (err) => {
       if (err) {
-        console.error("Error turning off TV:", err);
-        return res.status(500).send("Error turning off TV.");
+        console.error('Error turning off TV:', err)
+        return res.status(500).send('Error turning off TV.')
       }
-      tvOn = false;
-      res.send("TV turned off.");
-    });
+      tvOn = false
+      res.send('TV turned off.')
+    })
   }
-});
+})
 
-app.get("/alternate-primary", (req, res) => {
-  const target = primaryDisplay === ID_MONITOR_PC ? ID_TV : ID_MONITOR_PC;
+app.get('/alternate-primary', (req, res) => {
+  const target = primaryDisplay === ID_MONITOR_PC ? ID_TV : ID_MONITOR_PC
   exec(`${multiMonitorToolRoute} /SetPrimary ${target}`, (err) => {
     if (err) {
-      console.error("Error switching primary display:", err);
-      return res.status(500).send("Error switching primary display.");
+      console.error('Error switching primary display:', err)
+      return res.status(500).send('Error switching primary display.')
     }
-    primaryDisplay = target;
-    res.send(`Primary display set to ${target == 2 ? "TV" : "PC"}`);
-  });
-});
+    primaryDisplay = target
+    res.send(`Primary display set to ${target == 2 ? 'TV' : 'PC'}`)
+  })
+})
 
-app.get("/station-mode", (req, res) => {
+app.get('/station-mode', (req, res) => {
   exec(`${multiMonitorToolRoute} /enable ${ID_TV}`, () => {
     exec(`${multiMonitorToolRoute} /SetPrimary ${ID_TV}`, () => {
-      tvOn = true;
+      tvOn = true
       setTimeout(() => {
-        exec("start steam://open/bigpicture", (err) => {
+        exec('start steam://open/bigpicture', (err) => {
           if (err) {
-            console.error("Error opening Steam Big Picture:", err);
-            return res.status(500).send("Error opening Steam Big Picture.");
+            console.error('Error opening Steam Big Picture:', err)
+            return res.status(500).send('Error opening Steam Big Picture.')
           }
-          res.send("Steam Big Picture opened.");
-        });
-        res.send("Station Mode started: TV primary and game launched.");
-      }, 2000);
-    });
-  });
-});
+          res.send('Steam Big Picture opened.')
+        })
+        res.send('Station Mode started: TV primary and game launched.')
+      }, 2000)
+    })
+  })
+})
 
-app.get("/steam-big-picture", (req, res) => {
-  exec("start steam://open/bigpicture", (err) => {
+app.get('/steam-big-picture', (req, res) => {
+  exec('start steam://open/bigpicture', (err) => {
     if (err) {
-      console.error("Error opening Steam Big Picture:", err);
-      return res.status(500).send("Error opening Steam Big Picture.");
+      console.error('Error opening Steam Big Picture:', err)
+      return res.status(500).send('Error opening Steam Big Picture.')
     }
-    res.send("Steam Big Picture opened.");
-  });
-});
+    res.send('Steam Big Picture opened.')
+  })
+})
 
-app.get("/audio/headphones", (req, res) => {
+app.get('/audio/headphones', (req, res) => {
   exec(`${nirCmdRoute} setdefaultsounddevice "Headphones"`, (err) => {
     if (err) {
-      console.error("Error setting headphones audio:", err);
-      return res.status(500).send("Error setting headphones.");
+      console.error('Error setting headphones audio:', err)
+      return res.status(500).send('Error setting headphones.')
     }
-    res.send("Headphones set as default audio device.");
-  });
-});
+    res.send('Headphones set as default audio device.')
+  })
+})
 
-app.get("/audio/tv", (req, res) => {
+app.get('/audio/tv', (req, res) => {
   exec(`${nirCmdRoute} setdefaultsounddevice "AndroidTV"`, (err) => {
     if (err) {
-      console.error("Error setting TV audio:", err);
-      return res.status(500).send("Error setting TV audio.");
+      console.error('Error setting TV audio:', err)
+      return res.status(500).send('Error setting TV audio.')
     }
-    res.send("TV set as default audio device.");
-  });
-});
+    res.send('TV set as default audio device.')
+  })
+})
 
-app.get("/", (req, res) => {
+app.get('/', (req, res) => {
   res.send(`
   <!DOCTYPE html>
   <html lang="en">
@@ -447,9 +447,9 @@ app.get("/", (req, res) => {
   </body>
 </html>
 
-  `);
-});
+  `)
+})
 
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+  console.log(`Server running on http://localhost:${port}`)
+})
