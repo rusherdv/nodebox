@@ -10,6 +10,20 @@ const ID_MONITOR_PC = 1
 
 let tvOn = false
 let primaryDisplay = ID_MONITOR_PC
+const AUDIO_DEVICE_HEADPHONES = 'Headphones'
+const AUDIO_DEVICE_TV = 'AndroidTV'
+
+function runCommand(command) {
+  return new Promise((resolve, reject) => {
+    exec(command, (error) => {
+      if (error) {
+        reject(error)
+        return
+      }
+      resolve()
+    })
+  })
+}
 
 app.get('/shutdown', (req, res) => {
   exec('shutdown /s /t 0', (error) => {
@@ -61,26 +75,52 @@ app.get('/alternate-primary', (req, res) => {
       return res.status(500).send('Error switching primary display.')
     }
     primaryDisplay = target
-    res.send(`Primary display set to ${target == 2 ? 'TV' : 'PC'}`)
+    res.send(`Primary display set to ${target === ID_TV ? 'TV' : 'PC'}`)
   })
 })
 
 app.get('/station-mode', (req, res) => {
-  exec(`${multiMonitorToolRoute} /enable ${ID_TV}`, () => {
-    exec(`${multiMonitorToolRoute} /SetPrimary ${ID_TV}`, () => {
+  ;(async () => {
+    try {
+      await runCommand(`${multiMonitorToolRoute} /enable ${ID_TV}`)
+      await runCommand(`${multiMonitorToolRoute} /SetPrimary ${ID_TV}`)
+      await runCommand(`${nirCmdRoute} setdefaultsounddevice "${AUDIO_DEVICE_TV}"`)
+
       tvOn = true
-      setTimeout(() => {
-        exec('start steam://open/bigpicture', (err) => {
-          if (err) {
-            console.error('Error opening Steam Big Picture:', err)
-            return res.status(500).send('Error opening Steam Big Picture.')
-          }
-          res.send('Steam Big Picture opened.')
-        })
-        res.send('Station Mode started: TV primary and game launched.')
+      primaryDisplay = ID_TV
+
+      setTimeout(async () => {
+        try {
+          await runCommand('start steam://open/bigpicture')
+        } catch (err) {
+          console.error('Error opening Steam Big Picture:', err)
+        }
       }, 2000)
-    })
-  })
+
+      res.send('Station Mode ON: TV as primary display, TV audio enabled, Steam launching.')
+    } catch (err) {
+      console.error('Error activating Station Mode:', err)
+      res.status(500).send('Error activating Station Mode.')
+    }
+  })()
+})
+
+app.get('/station-mode/off', (req, res) => {
+  ;(async () => {
+    try {
+      await runCommand(`${multiMonitorToolRoute} /SetPrimary ${ID_MONITOR_PC}`)
+      await runCommand(`${nirCmdRoute} setdefaultsounddevice "${AUDIO_DEVICE_HEADPHONES}"`)
+      await runCommand(`${multiMonitorToolRoute} /disable ${ID_TV}`)
+
+      tvOn = false
+      primaryDisplay = ID_MONITOR_PC
+
+      res.send('Station Mode OFF: PC as primary display, headphones enabled, TV disabled.')
+    } catch (err) {
+      console.error('Error disabling Station Mode:', err)
+      res.status(500).send('Error disabling Station Mode.')
+    }
+  })()
 })
 
 app.get('/steam-big-picture', (req, res) => {
@@ -94,7 +134,7 @@ app.get('/steam-big-picture', (req, res) => {
 })
 
 app.get('/audio/headphones', (req, res) => {
-  exec(`${nirCmdRoute} setdefaultsounddevice "Headphones"`, (err) => {
+  exec(`${nirCmdRoute} setdefaultsounddevice "${AUDIO_DEVICE_HEADPHONES}"`, (err) => {
     if (err) {
       console.error('Error setting headphones audio:', err)
       return res.status(500).send('Error setting headphones.')
@@ -104,7 +144,7 @@ app.get('/audio/headphones', (req, res) => {
 })
 
 app.get('/audio/tv', (req, res) => {
-  exec(`${nirCmdRoute} setdefaultsounddevice "AndroidTV"`, (err) => {
+  exec(`${nirCmdRoute} setdefaultsounddevice "${AUDIO_DEVICE_TV}"`, (err) => {
     if (err) {
       console.error('Error setting TV audio:', err)
       return res.status(500).send('Error setting TV audio.')
@@ -325,11 +365,17 @@ app.get('/', (req, res) => {
     <script>
       const structure = [
         {
+          title: "Station Mode",
+          options: [
+            { value: "Station mode ON", function: handleStationModeOn },
+            { value: "Station mode OFF", function: handleStationModeOff }
+          ]
+        },
+        {
           title: "TV Management",
           options: [
             { value: "Toggle TV", function: handleToggleTv },
-            { value: "Toggle Primary Display", function: handleTogglePrimaryDisplay },
-            { value: "Station Mode", function: handleStationMode }
+            { value: "Toggle Primary Display", function: handleTogglePrimaryDisplay }
           ]
         },
         {
@@ -368,10 +414,17 @@ app.get('/', (req, res) => {
         }
       }
 
-      function handleStationMode() {
-        if (confirm("Confirm activating Station Mode?")) {
-          Toastify({ text: "Activating Station Mode...", duration: 3000 }).showToast();
+      function handleStationModeOn() {
+        if (confirm("Confirm turning Station Mode ON?")) {
+          Toastify({ text: "Turning Station Mode ON...", duration: 3000 }).showToast();
           fetch('/station-mode').then(res => res.text()).then(msg => Toastify({ text: msg, duration: 3000 }).showToast());
+        }
+      }
+
+      function handleStationModeOff() {
+        if (confirm("Confirm turning Station Mode OFF?")) {
+          Toastify({ text: "Turning Station Mode OFF...", duration: 3000 }).showToast();
+          fetch('/station-mode/off').then(res => res.text()).then(msg => Toastify({ text: msg, duration: 3000 }).showToast());
         }
       }
 
