@@ -1,7 +1,7 @@
 const express = require('express')
 const { exec } = require('child_process')
 const app = express()
-const port = 2498
+const port = 80
 
 const multiMonitorToolRoute = '"./tools/MultiMonitorTool.exe"'
 const nirCmdRoute = '"./tools/nircmd.exe"'
@@ -503,6 +503,6 @@ app.get('/', (req, res) => {
   `)
 })
 
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`)
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on http://0.0.0.0:${port}`)
 })
