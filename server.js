@@ -1,10 +1,12 @@
 const express = require('express')
 const { exec } = require('child_process')
+const path = require('path')
 const app = express()
 const port = 80
 
 const multiMonitorToolRoute = '"./tools/MultiMonitorTool.exe"'
 const nirCmdRoute = '"./tools/nircmd.exe"'
+const faviconPath = path.join(__dirname, 'favicon.ico')
 const ID_TV = 3
 const ID_MONITOR_PC = 1
 
@@ -153,6 +155,10 @@ app.get('/audio/tv', (req, res) => {
   })
 })
 
+app.get('/favicon.ico', (req, res) => {
+  res.sendFile(faviconPath)
+})
+
 app.get('/', (req, res) => {
   res.send(`
   <!DOCTYPE html>
@@ -161,6 +167,7 @@ app.get('/', (req, res) => {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>NodeBox</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
     <link
       rel="stylesheet"
       type="text/css"
