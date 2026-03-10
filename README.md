@@ -35,7 +35,6 @@ A modern web-based control center for managing your PC, displays, audio devices,
    ```
 
 3. **Download required tools**
-
    - Download [MultiMonitorTool.exe](https://www.nirsoft.net/utils/multi_monitor_tool.html)
    - Download [nircmd.exe](https://www.nirsoft.net/utils/nircmd.html)
    - Place both files in the `tools/` directory
@@ -44,8 +43,10 @@ A modern web-based control center for managing your PC, displays, audio devices,
    Edit the configuration variables in `server.js`:
 
    ```javascript
-   const ID_TV = 2; // Your TV display ID
-   const ID_MONITOR_PC = 3; // Your primary monitor ID
+   const DISPLAY_TV = '"\\\\.\\DISPLAY3"' // Your TV display name
+   const DISPLAY_MONITOR_PC = '"\\\\.\\DISPLAY1"' // Your main PC monitor
+   const DISPLAY_SECOND_MONITOR_PC = '"\\\\.\\DISPLAY2"' // Your secondary PC monitor
+   const STATION_MODE_DISABLED_DISPLAYS = [DISPLAY_MONITOR_PC, DISPLAY_SECOND_MONITOR_PC]
    ```
 
 5. **Start the server**
@@ -64,11 +65,13 @@ A modern web-based control center for managing your PC, displays, audio devices,
 To find your display IDs:
 
 1. Run MultiMonitorTool.exe
-2. Note the display numbers for your TV and primary monitor
+2. Note the `Name` field for each screen, for example `\\.\DISPLAY1`
 3. Update the constants in `server.js`:
    ```javascript
-   const ID_TV = 2; // Replace with your TV ID
-   const ID_MONITOR_PC = 3; // Replace with your monitor ID
+   const DISPLAY_TV = '"\\\\.\\DISPLAY3"' // Replace with your TV display name
+   const DISPLAY_MONITOR_PC = '"\\\\.\\DISPLAY1"' // Replace with your monitor display name
+   const DISPLAY_SECOND_MONITOR_PC = '"\\\\.\\DISPLAY2"' // Replace with your secondary monitor display name
+   const STATION_MODE_DISABLED_DISPLAYS = [DISPLAY_MONITOR_PC, DISPLAY_SECOND_MONITOR_PC]
    ```
 
 ### Audio Device Names
@@ -88,7 +91,7 @@ setdefaultsounddevice "AndroidTV"   // Replace with your TV audio name
 Change the server port if needed:
 
 ```javascript
-const port = 2498; // Default port
+const port = 2498 // Default port
 ```
 
 ## 🎯 API Endpoints
@@ -125,8 +128,9 @@ Perfect for gaming sessions:
 
 1. Enables TV display
 2. Sets TV as primary display
-3. Launches Steam Big Picture Mode
-4. Switches audio to TV (if configured)
+3. Turns off the displays listed in `STATION_MODE_DISABLED_DISPLAYS`
+4. Launches Steam Big Picture Mode
+5. Switches audio to TV (if configured)
 
 ### Quick Display Switch
 
@@ -175,8 +179,8 @@ The web interface features:
 
 **Display commands not working**
 
-- Verify display IDs using MultiMonitorTool
-- Update `ID_TV` and `ID_MONITOR_PC` constants
+- Verify display names using MultiMonitorTool
+- Update the `DISPLAY_*` constants
 
 **Audio switching fails**
 
@@ -193,7 +197,7 @@ The web interface features:
 Add console logging for debugging:
 
 ```javascript
-console.log("Command executed:", command);
+console.log('Command executed:', command)
 ```
 
 ## 📱 Mobile Access

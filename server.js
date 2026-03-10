@@ -9,6 +9,8 @@ const nirCmdRoute = '"./tools/nircmd.exe"'
 const faviconPath = path.join(__dirname, 'favicon.ico')
 const ID_TV = 3
 const ID_MONITOR_PC = 1
+const ID_SECOND_MONITOR_PC = 2
+const STATION_MODE_DISABLED_DISPLAYS = [ID_MONITOR_PC, ID_SECOND_MONITOR_PC]
 
 let tvOn = false
 let primaryDisplay = ID_MONITOR_PC
@@ -25,6 +27,12 @@ function runCommand(command) {
       resolve()
     })
   })
+}
+
+async function setDisplaysEnabled(displayIds, action) {
+  for (const displayId of displayIds) {
+    await runCommand(`${multiMonitorToolRoute} /${action} ${displayId}`)
+  }
 }
 
 app.get('/shutdown', (req, res) => {
@@ -86,6 +94,7 @@ app.get('/station-mode', (req, res) => {
     try {
       await runCommand(`${multiMonitorToolRoute} /enable ${ID_TV}`)
       await runCommand(`${multiMonitorToolRoute} /SetPrimary ${ID_TV}`)
+      await setDisplaysEnabled(STATION_MODE_DISABLED_DISPLAYS, 'disable')
       await runCommand(`${nirCmdRoute} setdefaultsounddevice "${AUDIO_DEVICE_TV}"`)
 
       tvOn = true
@@ -110,6 +119,7 @@ app.get('/station-mode', (req, res) => {
 app.get('/station-mode/off', (req, res) => {
   ;(async () => {
     try {
+      await setDisplaysEnabled(STATION_MODE_DISABLED_DISPLAYS, 'enable')
       await runCommand(`${multiMonitorToolRoute} /SetPrimary ${ID_MONITOR_PC}`)
       await runCommand(`${nirCmdRoute} setdefaultsounddevice "${AUDIO_DEVICE_HEADPHONES}"`)
       await runCommand(`${multiMonitorToolRoute} /disable ${ID_TV}`)
