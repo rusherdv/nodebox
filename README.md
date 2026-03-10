@@ -55,7 +55,7 @@ A modern web-based control center for managing your PC, displays, audio devices,
    ```
 
 6. **Open in browser**
-   Navigate to `http://localhost:2498`
+   Navigate to `http://localhost`
 
 ## ⚙️ Configuration
 
@@ -88,7 +88,7 @@ setdefaultsounddevice "AndroidTV"   // Replace with your TV audio name
 Change the server port if needed:
 
 ```javascript
-const port = 2498; // Default port
+const port = 80; // Default port
 ```
 
 ## 🎯 API Endpoints
@@ -198,20 +198,10 @@ console.log("Command executed:", command);
 
 ## 📱 Mobile Access
 
-The interface is fully responsive and works on mobile devices. Access it from your phone by connecting to the same network and navigating to `http://[your-pc-ip]:2498`.
+The interface is fully responsive and works on mobile devices. Access it from your phone by connecting to the same network and navigating to `http://[your-pc-ip]`.
 
 ## 🔒 Security Notes
 
 - This tool is designed for local network use
 - Be cautious when exposing the server to external networks
 - Consider adding authentication for production use
-
-## 📄 License
-
-This project is open source and available under the [MIT License](LICENSE).
-
-## 🙏 Acknowledgments
-
-- [NirSoft](https://www.nirsoft.net/) for the excellent system utilities
-- [Toastify](https://github.com/apvarun/toastify-js) for toast notifications
-- [Express.js](https://expressjs.com/) for the web framework
