@@ -11,6 +11,8 @@ const ID_TV = 3
 const ID_MONITOR_PC = 1
 const ID_SECOND_MONITOR_PC = 2
 const STATION_MODE_DISABLED_DISPLAYS = [ID_MONITOR_PC, ID_SECOND_MONITOR_PC]
+const DISPLAY_WAKE_DELAY_MS = 2500
+const PRIMARY_REASSERT_DELAY_MS = 1500
 
 let tvOn = false
 let primaryDisplay = ID_MONITOR_PC
@@ -29,10 +31,26 @@ function runCommand(command) {
   })
 }
 
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms)
+  })
+}
+
 async function setDisplaysEnabled(displayIds, action) {
   for (const displayId of displayIds) {
     await runCommand(`${multiMonitorToolRoute} /${action} ${displayId}`)
   }
+}
+
+async function restorePcDisplays() {
+  await runCommand(`${multiMonitorToolRoute} /enable ${ID_MONITOR_PC}`)
+  await sleep(DISPLAY_WAKE_DELAY_MS)
+  await runCommand(`${multiMonitorToolRoute} /SetPrimary ${ID_MONITOR_PC}`)
+
+  await runCommand(`${multiMonitorToolRoute} /enable ${ID_SECOND_MONITOR_PC}`)
+  await sleep(PRIMARY_REASSERT_DELAY_MS)
+  await runCommand(`${multiMonitorToolRoute} /SetPrimary ${ID_MONITOR_PC}`)
 }
 
 app.get('/shutdown', (req, res) => {
@@ -119,10 +137,11 @@ app.get('/station-mode', (req, res) => {
 app.get('/station-mode/off', (req, res) => {
   ;(async () => {
     try {
-      await setDisplaysEnabled(STATION_MODE_DISABLED_DISPLAYS, 'enable')
-      await runCommand(`${multiMonitorToolRoute} /SetPrimary ${ID_MONITOR_PC}`)
+      await restorePcDisplays()
       await runCommand(`${nirCmdRoute} setdefaultsounddevice "${AUDIO_DEVICE_HEADPHONES}"`)
       await runCommand(`${multiMonitorToolRoute} /disable ${ID_TV}`)
+      await sleep(PRIMARY_REASSERT_DELAY_MS)
+      await runCommand(`${multiMonitorToolRoute} /SetPrimary ${ID_MONITOR_PC}`)
 
       tvOn = false
       primaryDisplay = ID_MONITOR_PC
