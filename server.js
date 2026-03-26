@@ -9,9 +9,6 @@ const nirCmdRoute = '"./tools/nircmd.exe"'
 const faviconPath = path.join(__dirname, 'favicon.ico')
 const ID_TV = 3
 const ID_MONITOR_PC = 1
-const ID_SECOND_MONITOR_PC = 2
-const STATION_MODE_DISABLED_DISPLAYS = [ID_MONITOR_PC, ID_SECOND_MONITOR_PC]
-const DISPLAY_WAKE_DELAY_MS = 2500
 const PRIMARY_REASSERT_DELAY_MS = 1500
 
 let tvOn = false
@@ -35,22 +32,6 @@ function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms)
   })
-}
-
-async function setDisplaysEnabled(displayIds, action) {
-  for (const displayId of displayIds) {
-    await runCommand(`${multiMonitorToolRoute} /${action} ${displayId}`)
-  }
-}
-
-async function restorePcDisplays() {
-  await runCommand(`${multiMonitorToolRoute} /enable ${ID_MONITOR_PC}`)
-  await sleep(DISPLAY_WAKE_DELAY_MS)
-  await runCommand(`${multiMonitorToolRoute} /SetPrimary ${ID_MONITOR_PC}`)
-
-  await runCommand(`${multiMonitorToolRoute} /enable ${ID_SECOND_MONITOR_PC}`)
-  await sleep(PRIMARY_REASSERT_DELAY_MS)
-  await runCommand(`${multiMonitorToolRoute} /SetPrimary ${ID_MONITOR_PC}`)
 }
 
 app.get('/shutdown', (req, res) => {
@@ -112,7 +93,6 @@ app.get('/station-mode', (req, res) => {
     try {
       await runCommand(`${multiMonitorToolRoute} /enable ${ID_TV}`)
       await runCommand(`${multiMonitorToolRoute} /SetPrimary ${ID_TV}`)
-      await setDisplaysEnabled(STATION_MODE_DISABLED_DISPLAYS, 'disable')
       await runCommand(`${nirCmdRoute} setdefaultsounddevice "${AUDIO_DEVICE_TV}"`)
 
       tvOn = true
@@ -137,7 +117,7 @@ app.get('/station-mode', (req, res) => {
 app.get('/station-mode/off', (req, res) => {
   ;(async () => {
     try {
-      await restorePcDisplays()
+      await runCommand('start steam://close/bigpicture')
       await runCommand(`${nirCmdRoute} setdefaultsounddevice "${AUDIO_DEVICE_HEADPHONES}"`)
       await runCommand(`${multiMonitorToolRoute} /disable ${ID_TV}`)
       await sleep(PRIMARY_REASSERT_DELAY_MS)
@@ -146,7 +126,7 @@ app.get('/station-mode/off', (req, res) => {
       tvOn = false
       primaryDisplay = ID_MONITOR_PC
 
-      res.send('Station Mode OFF: PC as primary display, headphones enabled, TV disabled.')
+      res.send('Station Mode OFF: Steam Big Picture closed, PC as primary display, headphones enabled, TV disabled.')
     } catch (err) {
       console.error('Error disabling Station Mode:', err)
       res.status(500).send('Error disabling Station Mode.')

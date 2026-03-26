@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NodeBox</title>
+    <link rel="icon" href="/favicon.ico" type="image/x-icon" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css"
+    />
+    <style>
+      :root {
+        --bg-1: #07111f;
+        --bg-2: #102544;
+        --panel: rgba(8, 15, 30, 0.72);
+        --panel-border: rgba(255, 255, 255, 0.12);
+        --text: #f5f7fb;
+        --muted: rgba(245, 247, 251, 0.7);
+        --accent: #8fd3ff;
+        --success: #41d18f;
+        --danger: #ff8364;
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.34);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Space Grotesk", sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(circle at top left, rgba(58, 168, 255, 0.22), transparent 34%),
+          radial-gradient(circle at bottom right, rgba(255, 209, 102, 0.18), transparent 28%),
+          linear-gradient(145deg, var(--bg-1), var(--bg-2));
+      }
+
+      body[data-busy="true"] {
+        cursor: progress;
+      }
+
+      .shell {
+        width: min(1100px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 48px;
+      }
+
+      .hero {
+        display: grid;
+        gap: 18px;
+        margin-bottom: 28px;
+      }
+
+      .hero-card,
+      .section-card {
+        background: var(--panel);
+        border: 1px solid var(--panel-border);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        backdrop-filter: blur(18px);
+      }
+
+      .hero-card {
+        padding: 28px;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(143, 211, 255, 0.12);
+        color: var(--accent);
+        font-size: 12px;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 14px 0 10px;
+        font-size: clamp(34px, 5vw, 56px);
+        line-height: 0.96;
+      }
+
+      .hero-copy {
+        max-width: 720px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.6;
+      }
+
+      .status-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+        margin-top: 22px;
+      }
+
+      .status-card {
+        padding: 18px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .status-label {
+        color: var(--muted);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+      }
+
+      .status-value {
+        margin-top: 10px;
+        font-size: 22px;
+        font-weight: 700;
+      }
+
+      .status-meta {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .content-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 18px;
+      }
+
+      .section-card {
+        padding: 22px;
+      }
+
+      .section-title {
+        margin: 0 0 6px;
+        font-size: 19px;
+      }
+
+      .section-copy {
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .button-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      button {
+        width: 100%;
+        border: 0;
+        border-radius: 16px;
+        padding: 15px 16px;
+        font: inherit;
+        font-size: 14px;
+        color: var(--text);
+        cursor: pointer;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.05));
+        border: 1px solid rgba(255, 255, 255, 0.11);
+        transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+        background: linear-gradient(180deg, rgba(143, 211, 255, 0.18), rgba(58, 168, 255, 0.1));
+        border-color: rgba(143, 211, 255, 0.38);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.62;
+        transform: none;
+      }
+
+      .button-danger:hover {
+        background: linear-gradient(180deg, rgba(255, 131, 100, 0.2), rgba(255, 131, 100, 0.12));
+        border-color: rgba(255, 131, 100, 0.42);
+      }
+
+      .display-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .display-chip {
+        padding: 9px 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .display-chip strong {
+        color: var(--text);
+      }
+
+      .footer {
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      @media (max-width: 720px) {
+        .shell {
+          width: min(100% - 20px, 1100px);
+          padding-top: 20px;
+        }
+
+        .hero-card,
+        .section-card {
+          border-radius: 22px;
+        }
+
+        .hero-card {
+          padding: 22px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="shell">
+      <section class="hero">
+        <div class="hero-card">
+          <span class="eyebrow">NodeBox Control</span>
+          <h1>Panel formal para pantallas, audio y sistema</h1>
+          <p class="hero-copy">
+            El modo Station mantiene los monitores de escritorio dentro del
+            layout de Windows y aplica un blackout no destructivo para evitar
+            errores de sincronización o estados de sleep problemáticos.
+          </p>
+
+          <div class="status-grid" id="statusGrid"></div>
+        </div>
+      </section>
+
+      <section class="content-grid" id="contentGrid"></section>
+
+      <p class="footer" id="footerNote">
+        El estado mostrado corresponde al snapshot actual detectado por el servidor.
+      </p>
+    </main>
+
+    <script>
+      const statusGrid = document.getElementById("statusGrid");
+      const contentGrid = document.getElementById("contentGrid");
+      const footerNote = document.getElementById("footerNote");
+
+      const sections = [
+        {
+          title: "Modo Station",
+          description:
+            "Prepara la TV para jugar, la deja como principal y oscurece los monitores de escritorio sin deshabilitarlos.",
+          actions: [
+            {
+              label: "Activar Station Mode",
+              endpoint: "/station-mode",
+              confirm: "¿Activar Station Mode?",
+              pending: "Activando Station Mode...",
+            },
+            {
+              label: "Desactivar Station Mode",
+              endpoint: "/station-mode/off",
+              confirm: "¿Desactivar Station Mode?",
+              pending: "Desactivando Station Mode...",
+            },
+          ],
+        },
+        {
+          title: "Pantallas",
+          description:
+            "Controles explícitos para evitar toggles ambiguos y reducir estados inesperados.",
+          actions: [
+            {
+              label: "Encender TV",
+              endpoint: "/tv/on",
+              confirm: "¿Encender la TV desde el sistema?",
+              pending: "Encendiendo TV...",
+            },
+            {
+              label: "Apagar TV",
+              endpoint: "/tv/off",
+              confirm: "¿Apagar la TV desde el sistema?",
+              pending: "Apagando TV...",
+            },
+            {
+              label: "TV como principal",
+              endpoint: "/primary/tv",
+              confirm: "¿Configurar la TV como pantalla principal?",
+              pending: "Asignando TV como principal...",
+            },
+            {
+              label: "PC como principal",
+              endpoint: "/primary/pc",
+              confirm: "¿Configurar el monitor PC 1 como principal?",
+              pending: "Asignando monitor PC 1 como principal...",
+            },
+            {
+              label: "Blackout monitores PC",
+              endpoint: "/blackout/on",
+              confirm: "¿Aplicar blackout a los monitores de escritorio?",
+              pending: "Aplicando blackout...",
+            },
+            {
+              label: "Restaurar monitores PC",
+              endpoint: "/blackout/off",
+              confirm: "¿Restaurar los monitores de escritorio?",
+              pending: "Restaurando monitores...",
+            },
+          ],
+        },
+        {
+          title: "Audio y juegos",
+          description:
+            "Atajos directos para salida de audio y apertura de Steam Big Picture.",
+          actions: [
+            {
+              label: "Audio a auriculares",
+              endpoint: "/audio/headphones",
+              confirm: "¿Cambiar el audio a auriculares?",
+              pending: "Cambiando audio a auriculares...",
+            },
+            {
+              label: "Audio a TV",
+              endpoint: "/audio/tv",
+              confirm: "¿Cambiar el audio a la TV?",
+              pending: "Cambiando audio a TV...",
+            },
+            {
+              label: "Abrir Steam Big Picture",
+              endpoint: "/steam-big-picture",
+              confirm: "¿Abrir Steam Big Picture?",
+              pending: "Abriendo Steam Big Picture...",
+            },
+          ],
+        },
+        {
+          title: "Sistema",
+          description:
+            "Operaciones directas del equipo. Las acciones críticas mantienen confirmación explícita.",
+          actions: [
+            {
+              label: "Bloquear PC",
+              endpoint: "/lock",
+              confirm: "¿Bloquear el equipo ahora?",
+              pending: "Bloqueando equipo...",
+            },
+            {
+              label: "Apagar PC",
+              endpoint: "/shutdown",
+              confirm: "¿Apagar el equipo ahora?",
+              pending: "Apagando equipo...",
+              danger: true,
+            },
+          ],
+        },
+      ];
+
+      function showToast(text, background) {
+        Toastify({
+          text,
+          duration: 3200,
+          gravity: "top",
+          position: "center",
+          style: {
+            background,
+            color: "#07111f",
+            fontFamily: '"Space Grotesk", sans-serif',
+          },
+        }).showToast();
+      }
+
+      function setBusy(isBusy) {
+        document.body.dataset.busy = isBusy ? "true" : "false";
+        document.querySelectorAll("button").forEach((button) => {
+          button.disabled = isBusy;
+        });
+      }
+
+      async function fetchJson(endpoint) {
+        const response = await fetch(endpoint, { cache: "no-store" });
+        const data = await response.json().catch(() => ({
+          ok: false,
+          message: "La respuesta del servidor no se pudo interpretar.",
+        }));
+
+        if (!response.ok || !data.ok) {
+          throw new Error(data.message || "La operación no pudo completarse.");
+        }
+
+        return data;
+      }
+
+      function renderStatus(status) {
+        const activeScreens = status.activeScreens || [];
+        const screensMarkup = activeScreens.length
+          ? activeScreens
+              .map(
+                (screen) =>
+                  `<span class="display-chip"><strong>${screen.label}</strong> ${screen.deviceName}${screen.isPrimary ? " · principal" : ""}</span>`
+              )
+              .join("")
+          : `<span class="display-chip">No se detectaron pantallas activas.</span>`;
+
+        statusGrid.innerHTML = `
+          <article class="status-card">
+            <div class="status-label">Pantalla principal</div>
+            <div class="status-value">${status.primaryDisplayLabel || "No detectada"}</div>
+            <div class="status-meta">${status.primaryDisplayDeviceName || "Sin dato"}</div>
+          </article>
+          <article class="status-card">
+            <div class="status-label">TV</div>
+            <div class="status-value">${status.tvEnabled ? "Activa" : "Inactiva"}</div>
+            <div class="status-meta">${status.tvEnabled ? "Disponible en Windows" : "No detectada como display activo"}</div>
+          </article>
+          <article class="status-card">
+            <div class="status-label">Privacidad PC</div>
+            <div class="status-value">${status.desktopPrivacyMode === "blackout" ? "Blackout" : status.desktopPrivacyMode === "ddc_off" ? "En espera" : "Inactiva"}</div>
+            <div class="status-meta">${status.desktopPrivacyMode === "blackout" ? "Overlay visual no destructivo activo" : status.desktopPrivacyMode === "ddc_off" ? "Modo DDC/CI activo" : "Sin privacidad visual activa"}</div>
+          </article>
+          <article class="status-card">
+            <div class="status-label">Station Mode</div>
+            <div class="status-value">${status.stationModeLikelyActive ? "Activo" : "Inactivo"}</div>
+            <div class="status-meta">${activeScreens.length} pantalla(s) activa(s)</div>
+          </article>
+          <article class="status-card" style="grid-column: 1 / -1;">
+            <div class="status-label">Pantallas detectadas</div>
+            <div class="status-meta" style="margin-top: 12px;">
+              <div class="display-list">${screensMarkup}</div>
+            </div>
+          </article>
+        `;
+
+        footerNote.textContent =
+          "El estado mostrado corresponde al snapshot actual detectado por el servidor.";
+      }
+
+      function renderSections() {
+        contentGrid.innerHTML = sections
+          .map(
+            (section) => `
+              <section class="section-card">
+                <h2 class="section-title">${section.title}</h2>
+                <p class="section-copy">${section.description}</p>
+                <div class="button-list">
+                  ${section.actions
+                    .map(
+                      (action) => `
+                        <button
+                          class="${action.danger ? "button-danger" : ""}"
+                          data-endpoint="${action.endpoint}"
+                          data-confirm="${action.confirm}"
+                          data-pending="${action.pending}"
+                        >
+                          ${action.label}
+                        </button>
+                      `
+                    )
+                    .join("")}
+                </div>
+              </section>
+            `
+          )
+          .join("");
+
+        document.querySelectorAll("button[data-endpoint]").forEach((button) => {
+          button.addEventListener("click", () => handleAction(button));
+        });
+      }
+
+      async function refreshStatus() {
+        const data = await fetchJson("/status");
+        renderStatus(data.status);
+      }
+
+      async function handleAction(button) {
+        const confirmMessage = button.dataset.confirm;
+        const endpoint = button.dataset.endpoint;
+        const pendingMessage = button.dataset.pending;
+
+        if (confirmMessage && !window.confirm(confirmMessage)) {
+          return;
+        }
+
+        setBusy(true);
+        showToast(pendingMessage, "linear-gradient(135deg, #8fd3ff, #d6f0ff)");
+
+        try {
+          const data = await fetchJson(endpoint);
+          showToast(data.message, "linear-gradient(135deg, #41d18f, #d9f8e7)");
+          await refreshStatus();
+        } catch (error) {
+          showToast(error.message, "linear-gradient(135deg, #ff8364, #ffd3c8)");
+          try {
+            await refreshStatus();
+          } catch (refreshError) {
+            footerNote.textContent =
+              "No se pudo actualizar el estado después del error.";
+          }
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      async function bootstrap() {
+        renderSections();
+        setBusy(true);
+        try {
+          await refreshStatus();
+        } catch (error) {
+          footerNote.textContent =
+            "No se pudo obtener el estado inicial del servidor.";
+          showToast(error.message, "linear-gradient(135deg, #ff8364, #ffd3c8)");
+        } finally {
+          setBusy(false);
+        }
+      }
+
+      document.addEventListener("DOMContentLoaded", bootstrap);
+    </script>
+    <script
+      type="text/javascript"
+      src="https://cdn.jsdelivr.net/npm/toastify-js"
+    ></script>
+  </body>
+</html>
